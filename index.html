@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interactive Map of Greece</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { height: 100vh; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    const map = L.map('map').setView([39.0742, 21.8243], 7); // Centered on Greece
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 12,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add major cities
+    const cities = [
+      { name: "Athens", coords: [37.9838, 23.7275] },
+      { name: "Thessaloniki", coords: [40.6401, 22.9444] },
+      { name: "Patras", coords: [38.2466, 21.7346] },
+      { name: "Heraklion", coords: [35.3387, 25.1442] },
+      { name: "Larissa", coords: [39.6390, 22.4191] },
+      { name: "Volos", coords: [39.3610, 22.9420] },
+      { name: "Ioannina", coords: [39.6650, 20.8537] },
+    ];
+
+    cities.forEach(city => {
+      L.marker(city.coords).addTo(map).bindPopup(city.name);
+    });
+
+    // Load prefecture (regional unit) borders via GeoJSON
+    axios.get('https://raw.githubusercontent.com/deldersveld/topojson/master/countries/greece/greece-regional-units.geojson')
+      .then(response => {
+        const geojson = response.data;
+        L.geoJSON(geojson, {
+          style: {
+            color: "#555",
+            weight: 1,
+            fillOpacity: 0
+          },
+          onEachFeature: function (feature, layer) {
+            layer.bindTooltip(feature.properties.NAME_2, {
+              permanent: false,
+              direction: "center"
+            });
+          }
+        }).addTo(map);
+      });
+  </script>
+</body>
+</html>
